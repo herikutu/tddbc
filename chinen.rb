@@ -51,7 +51,6 @@ class Drink
     @amount > 0
   end
 
-
   def name
     kind = Drink.KIND.find{|kind| kind[:key] == @kind}
     kind[:name]
@@ -64,6 +63,7 @@ end
 
 
 class VendingMachine
+  attr_reader :total
 
   def self.ACCEPTABLE_MONEY
     [10, 50, 100, 500, 1000]
@@ -75,15 +75,12 @@ class VendingMachine
     @drink_collection = DrinkCollection.new
   end
 
-  def total
-    @total
-  end
-
   def display_total
     puts "投入済み金額: #{total}円"
   end
 
   def insert(input_money)
+    puts ""
     if VendingMachine.ACCEPTABLE_MONEY.include? input_money
       puts "#{input_money.to_s}円が投入されました"
       @total += input_money
@@ -94,22 +91,25 @@ class VendingMachine
       display_total
       input_money
     end
+    puts ""
   end
 
   def display_purchase_message
+    puts ""
     puts "購入したい商品を選択してください。"
+    puts ""
     puts "======="
     @drink_collection.each_with_index do |item, index|
       puts "#{item.name} を 購入したい場合は #{index+1}"
     end
     puts "======="
     puts "を入力し、Enter キーを押してください。"
+    puts ""
   end
 
   def purchase
     display_purchase_message
     input_kind = gets
-    puts ""
     puts ""
     rst = purchase_item(@drink_collection.keys[input_kind.to_i - 1])
     case rst
@@ -125,35 +125,27 @@ class VendingMachine
       puts "取り出してください。"
     end
     puts ""
-    puts ""
     display_status
   end
 
-  def purchase_item item_key
-    return :no_kind unless DrinkCollection.KIND.include? item_key
-    target_item = get_item(item_key)
-    return :no_item unless target_item.available?
-    return :less_money if @total <= target_item.price
-    @total -= target_item.price
-    @total_sales += target_item.price
-    target_item.purchased
-    target_item.name
-  end
-
-  def get_item item_key
-    @drink_collection.find_drink item_key
-  end
-
   def refund
+    puts ""
     puts "#{total}円を返却"
+    puts ""
     display_total
     @total = 0
   end
 
   def display_status
+    puts ""
+    puts "======"
     display_input_money
+    puts ""
     display_sales_info
+    puts ""
     display_stock_info
+    puts "======"
+    puts ""
   end
 
   private
@@ -172,6 +164,21 @@ class VendingMachine
       puts "売上金額: #{@total_sales}"
     end
 
+    def purchase_item item_key
+      return :no_kind unless @drink_collection.keys.include? item_key
+      target_item = get_item(item_key)
+      return :no_item unless target_item.available?
+      return :less_money if @total <= target_item.price
+      @total -= target_item.price
+      @total_sales += target_item.price
+      target_item.purchased
+      target_item.name
+    end
+
+    def get_item item_key
+      @drink_collection.find_drink item_key
+    end
+
 end
 
 # vm = VendingMachine.new
@@ -180,14 +187,5 @@ end
 
 # # 10円を投入
 # vm.insert(10)
-# => 何を返すと良いか？
 
-# # 100円を投入
-# vm.insert(100)
-# => 何を返すと良いか？
-
-# # 貨幣として存在しない111円を投入
-# vm.insert(111) # => 何を返すといいのか？考える
-
-# vm.total # => 110と出力される
 
